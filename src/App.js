@@ -1,36 +1,48 @@
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import Axios from 'axios';
+import { Pokemon } from './components/Pokemon';
 import './App.css';
-import axios from "axios";
+import logo from './assets/pokemon-logo.png';
 
 function App() {
-    const [pokemons, setPokemons] = useState(null);
-    async function fetchdata(){
 
-        try{
-            const result = await axios.get('https://pokeapi.co/api/v2/pokemon/ditto');
-            console.log(result);
-            setPokemons(result.data.results);
-        } catch(e){
-            console.error(e);
+    const [pokimons, setPokimons] = useState(null);
+    const [previousUrl, setPreviousUrl] = useState(null);
+    const [nextUrl, setNextUrl] = useState(null);
+    const [url, setUrl] = useState('https://pokeapi.co/api/v2/pokemon?limit=20&offset=0');
+
+    useEffect(() => {
+
+        async function fetchPokimonList() {
+            try {
+                const result = await Axios.get(url);
+                setPreviousUrl(result.data.previous);
+                setNextUrl(result.data.next);
+                setPokimons(result.data);
+            } catch (error) {
+                console.error(error);
+            }
         }
-    }
-    return(
-        <div>
-            <button type="button" onClick={fetchdata}>
-                Haal de pokemons op!
-            </button>
-            <ul>
+        fetchPokimonList();
+    }, [url]);
 
-                {pokemons && pokemons.map((pokemon)=>{
 
-                    return <li>{pokemon.name}</li>
+    return (
+        <>
+            <header><img alt="pokemon-logo" src={logo} /></header>
 
-                } ) }
+            <ul className="pokemon-list">
+                {pokimons ? pokimons.results.map(({ name }) => (
+                    <li key={name}>
+                        <Pokemon name={name} />
+                    </li>
+                )) : (
+                    <h1>loading...</h1>
+                )}
             </ul>
 
-        </div>
-    );
+        </>
+    )
 }
-
 
 export default App;
